@@ -1,0 +1,302 @@
+const Organization = require("../models/organizationModel");
+const Tournament = require("../models/tournamentModel");
+const mongoose = require("mongoose");
+const Match = require("../models/matchModel");
+const nodemailer = require("nodemailer");
+
+exports.createTournament = async (req, res) => {
+  try {
+    const {
+      tournamentName,
+      priceAmount,
+      entryFees,
+      startDate,
+      endDate,
+      tournamentId,
+      teamLimit,
+      organization_id,
+      overs,
+      ballType,
+    } = req.body;
+
+    if (teamLimit <= 1) {
+      return res
+        .status(400)
+        .json({ error: "Team limit must be greater than 1" });
+    }
+
+    const existingTournament = await Tournament.findOne({ tournamentId });
+    if (existingTournament) {
+      return res
+        .status(400)
+        .json({ error: "Tournament with the same ID already exists" });
+    }
+
+    const currentDate = new Date();
+    const startDt = new Date(startDate);
+    const endDt = new Date(endDate);
+    if (
+      isNaN(startDt.getTime()) ||
+      isNaN(endDt.getTime()) ||
+      startDt < currentDate ||
+      endDt < currentDate ||
+      startDt >= endDt
+    ) {
+      return res.status(400).json({ error: "Invalid start or end date" });
+    }
+
+    const organization = await Organization.findOne({
+      organization_id: organization_id,
+    });
+    if (!organization) {
+      return res.status(404).json({ error: "Organization not found" });
+    }
+
+    const newTournament = new Tournament({
+      tournamentName,
+      priceAmount,
+      entryFees,
+      startDate,
+      endDate,
+      tournamentId,
+      teamLimit,
+      organization_id,
+      overs,
+      ballType,
+    });
+
+    await newTournament.save();
+    organization.tournaments.push(tournamentId);
+
+    await organization.save();
+
+    return res.status(201).json({ message: "Tournament created successfully" });
+  } catch (error) {
+    console.error("Error creating tournament:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.getAllTournaments = async (req, res) => {
+  try {
+    const tournaments = await Tournament.find();
+    res.status(200).json(tournaments);
+  } catch (error) {
+    console.error("Error fetching tournaments:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.getTournamentById = async (req, res) => {
+  try {
+    const { tournamentId } = req.params;
+    const tournament = await Tournament.findOne({ tournamentId });
+    if (!tournament) {
+      console.log("Tournament not found");
+      return res.status(404).json({ error: "Tournament not found" });
+    }
+
+    res.status(200).json(tournament);
+  } catch (error) {
+    console.error("Error fetching tournament:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.joinTournament = async (req, res) => {
+  try {
+    const { tournamentId, teamName, organizationEmail } = req.body;
+
+    const organizationByEmail = await Organization.findOne({
+      email: organizationEmail,
+    });
+    if (!organizationByEmail) {
+      return res.status(400).json({ error: "Invalid organization email" });
+    }
+
+    const tournament = await Tournament.findOne({ tournamentId });
+    if (!tournament) {
+      return res.status(404).json({ error: "Tournament not found" });
+    }
+
+    if (tournament.teams.length >= tournament.teamLimit) {
+      return res
+        .status(400)
+        .json({ error: "Team limit reached for this tournament" });
+    }
+
+    if (tournament.teams.includes(teamName)) {
+      return res
+        .status(400)
+        .json({ error: "Team with the same name already exists" });
+    }
+
+    if (!tournament.organizationEmail) {
+      tournament.organizationEmail = [];
+    }
+
+    tournament.organizationEmail.push(organizationEmail);
+
+    tournament.teams.push(teamName);
+
+    await tournament.save();
+
+    return res
+      .status(200)
+      .json({ message: "Successfully joined the tournament" });
+  } catch (error) {
+    console.error("Error joining tournament:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+exports.generateMatches = async (req, res) => {
+  try {
+    const tournamentId = req.params.tournamentId;
+
+    const tournament = await Tournament.findOne({ tournamentId });
+    if (!tournament) {
+      return res.status(404).json({ message: "Tournament not found" });
+    }
+
+    if (tournament.matchesGenerated) {
+      return res
+        .status(400)
+        .json({ message: "Matches already generated for this tournament" });
+    }
+
+    const teams = tournament.teams;
+
+    if (teams.length < tournament.teamLimit) {
+      return res
+        .status(400)
+        .json({ message: "Team limit not reached for this tournament" });
+    }
+
+    const matches = [];
+    let matchCount = 1;
+    for (let i = 0; i < teams.length - 1; i++) {
+      for (let j = i + 1; j < teams.length; j++) {
+        const matchId = `M${matchCount++}`;
+        const match = new Match({
+          tournamentId,
+          matchId,
+          team1: teams[i],
+          team2: teams[j],
+        });
+        await match.save();
+        matches.push(match);
+      }
+    }
+
+    tournament.matchesGenerated = true;
+    await tournament.save();
+
+    res
+      .status(200)
+      .json({ message: "Matches generated successfully", matches });
+  } catch (error) {
+    console.error("Error generating matches:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+exports.getAllMatchesForTournament = async (req, res) => {
+  try {
+    const tournamentId = req.params.tournamentId;
+
+    const matches = await Match.find({ tournamentId });
+
+    res.status(200).json(matches);
+  } catch (error) {
+    console.error("Error fetching matches:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.sendMatches = async (req, res) => {
+  try {
+    const { tournamentId } = req.params;
+
+    const tournament = await Tournament.findOne({ tournamentId });
+    if (!tournament) {
+      return res.status(404).json({ message: "Tournament not found" });
+    }
+    const matches = await Match.find({ tournamentId });
+
+    const emailContent = `
+        <h2>Matches for Tournament ${tournament.tournamentName}</h2>
+        <ul>
+          ${matches
+            .map((match) => `<li>${match.team1} vs ${match.team2}</li>`)
+            .join("")}
+        </ul>
+      `;
+
+    
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: "logachan08@gmail.com",
+        pass: "hrbv llnm zmls xrcj",
+      },
+    });
+    for (const orgEmail of tournament.organizationEmail) {
+      const mailOptions = {
+        from: "logachan08@gmail.com",
+        to: orgEmail,
+        subject: `Matches for Tournament ${tournament.tournamentName}`,
+        html: emailContent,
+      };
+      await transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.error("Error sending email:", error);
+          res.status(500).json({ error: "Error sending email" });
+        } else {
+          console.log("Email sent:", info.response);
+        }
+      });
+    }
+
+    res.status(200).json({ message: "Matches sent successfully" });
+  } catch (error) {
+    console.error("Error sending matches:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+
+exports.updateMatchResult = async (req, res) => {
+    try {
+      const { matchId, winner, runsTeam1, runsTeam2 } = req.body;
+  
+      const match = await Match.findOne({ matchId });
+      if (!match) {
+        return res.status(404).json({ message: 'Match not found' });
+      }
+  
+      match.winner = winner;
+      match.loser = winner === match.team1 ? match.team2 : match.team1;
+  
+      
+      match.runsTeam1 = runsTeam1;
+      match.runsTeam2 = runsTeam2;
+  
+      if (winner === match.team1) {
+        match.pointsTeam1 += 2; 
+        match.pointsTeam2 -= 2; 
+      } else {
+        match.pointsTeam1 -= 2;
+        match.pointsTeam2 += 2; 
+      }
+  
+      
+      await match.save();
+  
+      res.status(200).json({ message: 'Match result updated successfully', match });
+    } catch (error) {
+      console.error('Error updating match result:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  };
+  
