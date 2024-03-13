@@ -40,7 +40,7 @@ export default function HomeWithOrgId() {
 
   const handleViewMatchesClick = (tournamentId) => {
     // Navigate to the matches page using the tournament ID
-    const matchesUrl = `http://localhost:3700/tournaments/matches/${tournamentId}`;
+    const matchesUrl = `http://localhost:3000/tournaments/matches/${tournamentId}`;
     console.log("Matches URL:", matchesUrl);
     // Redirect to matches page (You can use <Link> component for internal navigation)
     window.location.href = matchesUrl;

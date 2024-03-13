@@ -9,7 +9,7 @@ function MatchesPage({ tournamentId }) {
   useEffect(() => {
     const fetchMatches = async () => {
       try {
-        const response = await Axios.get(`http://localhost:3700/matches/${tournamentId}`);
+        const response = await Axios.get(`http://localhost:3700/tournaments/matches/${tournamentId}`);
         setMatches(response.data);
       } catch (error) {
         console.error('Error fetching matches:', error);
