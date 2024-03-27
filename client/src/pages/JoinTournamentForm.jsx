@@ -16,7 +16,7 @@ function JoinTournamentForm() {
       .then((res) => {
         toast.success('Successfully joined the tournament');
         console.log(`Data Saved ${res.data}`);
-        navigate('/menu'); // Redirect after successful join
+        navigate('/menu'); 
       })
       .catch((err) => {
         console.log(`Error occurred during joining tournament: ${err}`);
@@ -28,7 +28,7 @@ function JoinTournamentForm() {
     <>
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh', backgroundColor: '#fafafa' }}>
         <div style={{ width: '300px', padding: '20px', border: '1px solid #ccc', borderRadius: '5px', boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)', backgroundColor: '#fff' }}>
-          <ToastContainer /> {/* Add ToastContainer */}
+          <ToastContainer />
           <form onSubmit={handleSubmit}>
             <div style={{ textAlign: 'center', fontSize: '24px', marginBottom: '20px', color: '#3897f0', fontFamily: 'Billabong, Arial, sans-serif' }}>Join Tournament</div>
             <div style={{ marginBottom: '20px' }}>

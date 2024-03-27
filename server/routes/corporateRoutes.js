@@ -26,10 +26,7 @@ router.post('/createteam/:organizationId/',teamController.createTeam);
 
 
 
-// Route for getting all teams of one organization
-router.get('/teams/:organizationId', teamController.teamsById);
 
-router.get('/allTeams/', teamController.getAllTeams);
 
 
 

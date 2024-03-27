@@ -14,8 +14,7 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-import "../styles/ContactStyles.css"; // Import the CSS file
-
+import "../styles/ContactStyles.css"; 
 const Contact = () => {
   return (
     <Layout>

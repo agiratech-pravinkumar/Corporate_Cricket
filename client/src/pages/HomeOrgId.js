@@ -59,8 +59,6 @@ const HomeWithOrgId = () => {
         `http://localhost:3700/tournaments/tournaments/${tournamentId}`
       );
       setSelectedTournament(response.data);
-      // Assuming `images` is an array containing images for tournaments
-      const images = [cric1, cric2]; // Define your images array
     } catch (error) {
       console.error("Error fetching tournament details:", error);
     }
@@ -197,7 +195,6 @@ const HomeWithOrgId = () => {
                           collective pursuit of victory."
                         </span>
                       </h3>
-                      
                     </div>
                   </div>
                 </div>
@@ -248,8 +245,6 @@ const HomeWithOrgId = () => {
         </div>
       </div>
 
-      {/* Carousel End */}
-      {/* Facts Start */}
       <div className="container-fluid facts my-5 p-5">
         <div className="row g-5">
           <div className="col-md-6 col-xl-3 wow fadeIn" data-wow-delay="0.1s">
@@ -306,9 +301,7 @@ const HomeWithOrgId = () => {
           </div>
         </div>
       </div>
-      {/* Facts End */}
 
-      {/* Service Start */}
       <div className="container-xxl py-5" id="your-tournaments">
         <div className="container">
           <div
@@ -343,7 +336,7 @@ const HomeWithOrgId = () => {
                       </p>
                     </div>
                   </div>
-                  {/* Call handleViewTournament on button click */}
+
                   <a
                     className="btn btn-light"
                     onClick={() => handleViewTournament(tournament)}
@@ -354,7 +347,7 @@ const HomeWithOrgId = () => {
               </div>
             ))}
           </div>
-          {/* Display selected tournament details below the tournament list */}
+
           <h1>Selected Tournaments</h1>
           {selectedTournament && (
             <div className="row mt-4">
@@ -495,7 +488,7 @@ const HomeWithOrgId = () => {
                             )
                           }
                         >
-                          Reminder to Teams
+                          Sent Remainder
                         </button>
                       </div>
                     ) : (
@@ -523,10 +516,6 @@ const HomeWithOrgId = () => {
           )}
         </div>
       </div>
-
-      {/* Service End */}
-
-      {/* Team End */}
 
       {/* Footer Start */}
       <div
@@ -578,34 +567,33 @@ const HomeWithOrgId = () => {
             </div>
             <div className="col-lg-3 col-md-6">
               <h5 className="text-white mb-4">Quick Links</h5>
-              <a className="btn btn-link" href="">
+              <a className="btn btn-link" href="/about">
                 About Us
               </a>
-              <a className="btn btn-link" href="">
+              <a className="btn btn-link" href="/contact">
                 Contact Us
               </a>
-              <a className="btn btn-link" href="">
+              <a className="btn btn-link" href="/#">
                 Our Services
               </a>
-              <a className="btn btn-link" href="">
-                Terms &amp; Condition
-              </a>
-              <a className="btn btn-link" href="">
+             
+              <a className="btn btn-link" href="/support">
                 Support
               </a>
             </div>
+
             <div className="col-lg-3 col-md-6">
-              <h5 className="text-white mb-4">Business Hours</h5>
-              <p className="mb-1">Monday - Friday</p>
-              <h6 className="text-light">09:00 am - 07:00 pm</h6>
-              <p className="mb-1">Saturday</p>
+              <h5 className="text-white mb-4">Match Hours</h5>
+              <p className="mb-1"></p>
               <h6 className="text-light">09:00 am - 12:00 pm</h6>
-              <p className="mb-1">Sunday</p>
-              <h6 className="text-light">Closed</h6>
+              <p className="mb-1"></p>
+              <h6 className="text-light">12:00 pm - 3:00 pm</h6>
+              <p className="mb-1"></p>
+              <h6 className="text-light">3:00pm -6:00pm</h6>
             </div>
             <div className="col-lg-3 col-md-6">
-              <h5 className="text-white mb-4">Newsletter</h5>
-              <p>Dolor amet sit justo amet elitr clita ipsum elitr est.</p>
+              <h5 className="text-white mb-4">Live Match </h5>
+              <p>If you want live scores subcribe for more</p>
               <div className="position-relative w-100">
                 <input
                   className="form-control bg-transparent w-100 py-3 ps-4 pe-5"
@@ -616,44 +604,36 @@ const HomeWithOrgId = () => {
                   type="button"
                   className="btn btn-primary py-2 position-absolute top-0 end-0 mt-2 me-2"
                 >
-                  SignUp
+                  Subcribe
                 </button>
               </div>
             </div>
           </div>
         </div>
       </div>
-      {/* Footer End */}
-      {/* Copyright Start */}
+
       <div className="container-fluid copyright bg-dark py-4">
         <div className="container text-center">
           <p className="mb-2">
             Copyright ©{" "}
             <a className="fw-semi-bold" href="#">
-              Your Site Name
+              Corporate Cricket
             </a>
             , All Right Reserved.
           </p>
-          {/*/*** This template is free as long as you keep the footer author’s credit link/attribution link/backlink. If you'd like to use the template without the footer author’s credit link/attribution link/backlink, you can purchase the Credit Removal License from "https://htmlcodex.com/credit-removal". Thank you for your support. *** /*/}
           <p className="mb-0">
-            Designed By{" "}
-            <a className="fw-semi-bold" href="#">
-              HTML Codex
-            </a>{" "}
-            Distributed By: <a href="#">ThemeWagon</a>{" "}
+            {" "}
+            <a className="fw-semi-bold" href="#"></a> <a href="#"></a>{" "}
           </p>
         </div>
       </div>
-      {/* Copyright End */}
-      {/* Back to Top */}
+
       <a
         href="#"
         className="btn btn-lg btn-primary btn-lg-square rounded-circle back-to-top"
       >
         <i className="bi bi-arrow-up" />
       </a>
-      {/* JavaScript Libraries */}
-      {/* Template Javascript */}
     </>
   );
 };

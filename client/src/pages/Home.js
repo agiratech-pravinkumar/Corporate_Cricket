@@ -1,9 +1,7 @@
-// Home.js
-
 import React, { useState, useEffect } from "react";
 import Layout from "./../components/Layout/Layout";
 import { Card, CardContent, Typography } from "@mui/material";
-import "../styles/home.css"; // Import the CSS file
+import "../styles/home.css"; 
 
 const Home = () => {
   const [matches, setMatches] = useState([]);
@@ -18,7 +16,7 @@ const Home = () => {
           throw new Error("Failed to fetch matches");
         }
         const data = await response.json();
-        setMatches(data); // Set matches in state
+        setMatches(data); 
       } catch (error) {
         console.error("Error fetching matches:", error.message);
       }

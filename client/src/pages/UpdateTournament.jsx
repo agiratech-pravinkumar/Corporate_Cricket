@@ -62,11 +62,11 @@ function UpdateTournament() {
       })
       .then((response) => {
         console.log("Update successful:", response);
-        // Optionally, perform any other actions after successful update
+      
       })
       .catch((error) => {
         console.error("Error updating match result:", error);
-        // Optionally, handle error cases
+  
       });
   };
 

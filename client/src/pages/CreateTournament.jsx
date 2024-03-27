@@ -45,7 +45,7 @@ function CreateTournament({ organizationId }) {
         "http://localhost:3700/tournaments/create_tournament",
         formData
       );
-  
+
       if (response.status === 201) {
         console.log("Tournament created successfully!");
         setFormData({
@@ -65,10 +65,13 @@ function CreateTournament({ organizationId }) {
         console.error("Failed to create tournament");
       }
     } catch (error) {
-      console.error("Error occurred while creating tournament:", error.response.data);
+      console.error(
+        "Error occurred while creating tournament:",
+        error.response.data
+      );
     }
   };
-  
+
   console.log(organizationId);
 
   return (
@@ -94,7 +97,7 @@ function CreateTournament({ organizationId }) {
               HOME
             </Link>
             <Link
-              to="/tournaments/create_tournament"
+              to={`/home/${location.search.replace("?", "")}`}
               className="nav-item nav-link"
             >
               CreateTournament
@@ -133,7 +136,7 @@ function CreateTournament({ organizationId }) {
             </Link>
           </div>
           <button className="btn btn-primary px-3 d-none d-lg-block">
-          Help
+            Help
           </button>
         </div>
       </nav>
@@ -214,7 +217,6 @@ function CreateTournament({ organizationId }) {
                       name="entryFees"
                       value={formData.entryFees}
                       onChange={handleChange}
-                        
                     />
                   </div>
                   <div className="mb-4">

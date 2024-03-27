@@ -1,7 +1,7 @@
 import React from "react";
 import Layout from "./../components/Layout/Layout";
 import { Box, Typography } from "@mui/material";
-import aboutImage from "../images/about1.jpg"; // Import your image here
+import aboutImage from "../images/about1.jpg";
 
 const About = () => {
   return (

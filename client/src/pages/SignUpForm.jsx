@@ -12,7 +12,7 @@ import {
   MDBCardBody,
   MDBInput,
   MDBIcon,
-  MDBCardImage // Add this import
+  MDBCardImage 
 } from 'mdb-react-ui-kit';
 import Layout from "../components/Layout/Layout";
 import sigupImage from "../images/1.jpg";
@@ -38,7 +38,7 @@ const SignUpForm = () => {
 
   return (
     <Layout>
-      {/* Apply the custom CSS class for background color */}
+  
       <MDBContainer fluid className="my-5">
         <MDBCard className='text-black'>
           <MDBCardBody>

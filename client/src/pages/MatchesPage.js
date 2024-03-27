@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import Layout from '../components/Layout/Layout';
-import MatchCard from '../components/Layout/MatchCard'; // Import the MatchCard component
+import MatchCard from '../components/Layout/MatchCard'; 
 import "../styles/testing.css";
 import PoinsTable from '../components/Layout/PoinsTable';
 
@@ -23,7 +23,7 @@ function MatchesPage() {
   }, [tournamentId]);
 
   useEffect(() => {
-    // Filter matches into completed and upcoming categories
+    
     const completed = matches.filter(match => match.winner);
     const upcoming = matches.filter(match => !match.winner);
     setCompletedMatches(completed);
@@ -34,11 +34,11 @@ function MatchesPage() {
     <Layout>
       <h1>ALL MATCHES FOR :{tournamentId}</h1>
       <div className="content-wrapper">
-        {/* Map through completed matches and render MatchCard for each */}
+      
         {completedMatches.map((match, index) => (
           <MatchCard key={index} match={match} />
         ))}
-        {/* Map through upcoming matches and render MatchCard for each */}
+    
         {upcomingMatches.map((match, index) => (
           <MatchCard key={index} match={match} />
         ))}

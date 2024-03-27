@@ -17,6 +17,14 @@ const matchSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  matchDate: {
+    type: Date, 
+    required: true
+  },
+  overs: {
+    type: Number,
+    
+  },
   winner: {
     type: String,
     default: null
@@ -40,6 +48,15 @@ const matchSchema = new mongoose.Schema({
   pointsTeam2: {
     type: Number,
     default: 0
+  },
+  tossWinner: {
+    type: String,
+    default: null
+  },
+  choice: {
+    type: String,
+    enum: ['batting', 'bowling', null],
+    default: null
   }
 });
 

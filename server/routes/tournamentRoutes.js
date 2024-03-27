@@ -26,7 +26,11 @@ router.post("/matches/:tournamentId", tournamentController.generateMatches);
 
 router.post("/announce/:tournamentId", tournamentController.sendMatches);
 
-router.put('/matches/:matchId/update-result', tournamentController.updateMatchResult);
+router.put('/matches/update-result', tournamentController.updateMatchResult);
+
+router.get('/getallmatches',tournamentController.getAllMatches);
+
+router.get('/getPointsTable/:tournamentId',tournamentController.getTeamStatistics);
 
 
 module.exports = router;

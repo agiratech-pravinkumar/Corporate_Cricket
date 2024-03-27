@@ -1,8 +1,9 @@
 const Organization = require("../models/organizationModel");
 const Tournament = require("../models/tournamentModel");
-const mongoose = require("mongoose");
 const Match = require("../models/matchModel");
+const PointsTable = require('../models/pointsTableModel');
 const nodemailer = require("nodemailer");
+const moment = require("moment");
 
 exports.createTournament = async (req, res) => {
   try {
@@ -150,57 +151,6 @@ exports.joinTournament = async (req, res) => {
   }
 };
 
-exports.generateMatches = async (req, res) => {
-  try {
-    const tournamentId = req.params.tournamentId;
-
-    const tournament = await Tournament.findOne({ tournamentId });
-    if (!tournament) {
-      return res.status(404).json({ message: "Tournament not found" });
-    }
-
-    if (tournament.matchesGenerated) {
-      return res
-        .status(400)
-        .json({ message: "Matches already generated for this tournament" });
-    }
-
-    const teams = tournament.teams;
-
-    if (teams.length < tournament.teamLimit) {
-      return res
-        .status(400)
-        .json({ message: "Team limit not reached for this tournament" });
-    }
-
-    const matches = [];
-    let matchCount = 1;
-    for (let i = 0; i < teams.length - 1; i++) {
-      for (let j = i + 1; j < teams.length; j++) {
-        const matchId = `M${matchCount++}`;
-        const match = new Match({
-          tournamentId,
-          matchId,
-          team1: teams[i],
-          team2: teams[j],
-        });
-        await match.save();
-        matches.push(match);
-      }
-    }
-
-    tournament.matchesGenerated = true;
-    await tournament.save();
-
-    res
-      .status(200)
-      .json({ message: "Matches generated successfully", matches });
-  } catch (error) {
-    console.error("Error generating matches:", error);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-};
-
 exports.getAllMatchesForTournament = async (req, res) => {
   try {
     const tournamentId = req.params.tournamentId;
@@ -233,7 +183,6 @@ exports.sendMatches = async (req, res) => {
         </ul>
       `;
 
-    
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -265,38 +214,215 @@ exports.sendMatches = async (req, res) => {
   }
 };
 
+exports.getAllMatches = async (req, res) => {
+  try {
+  
+    const matches = await Match.find();
 
-exports.updateMatchResult = async (req, res) => {
-    try {
-      const { matchId, winner, runsTeam1, runsTeam2 } = req.body;
-  
-      const match = await Match.findOne({ matchId });
-      if (!match) {
-        return res.status(404).json({ message: 'Match not found' });
-      }
-  
-      match.winner = winner;
-      match.loser = winner === match.team1 ? match.team2 : match.team1;
-  
-      
-      match.runsTeam1 = runsTeam1;
-      match.runsTeam2 = runsTeam2;
-  
-      if (winner === match.team1) {
-        match.pointsTeam1 += 2; 
-        match.pointsTeam2 -= 2; 
-      } else {
-        match.pointsTeam1 -= 2;
-        match.pointsTeam2 += 2; 
-      }
-  
-      
-      await match.save();
-  
-      res.status(200).json({ message: 'Match result updated successfully', match });
-    } catch (error) {
-      console.error('Error updating match result:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+ 
+    res.json(matches);
+  } catch (error) {
+   
+    console.error("Error fetching matches:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+let nextUniqueId = 10000; 
+let usedMatchIds = new Set(); 
+
+exports.generateMatches = async (req, res) => {
+  try {
+    const tournamentId = req.params.tournamentId;
+
+    const tournament = await Tournament.findOne({ tournamentId });
+    if (!tournament) {
+      return res.status(404).json({ message: "Tournament not found" });
     }
-  };
+
+    if (tournament.matchesGenerated) {
+      return res
+        .status(400)
+        .json({ message: "Matches already generated for this tournament" });
+    }
+
+    const teams = tournament.teams;
+
+    if (teams.length < tournament.teamLimit) {
+      return res
+        .status(400)
+        .json({ message: "Team limit not reached for this tournament" });
+    }
+
+    const startDate = new Date(tournament.startDate);
+    const endDate = new Date(tournament.endDate);
+    const overs = tournament.overs;
+
+    const pointsTableEntries = teams.map((team) => ({
+      tournamentId,
+      team,
+      matchesPlayed: 0,
+      matchesWon: 0,
+      matchesLost: 0,
+      points: 0,
+    }));
+
+    
+    await PointsTable.insertMany(pointsTableEntries);
+
+    const matches = [];
+
+    for (let i = 0; i < teams.length - 1; i++) {
+      for (let j = i + 1; j < teams.length; j++) {
+        let matchId;
+        do {
+          matchId = generateUniqueMatchId(); 
+        } while (usedMatchIds.has(matchId)); 
+        usedMatchIds.add(matchId); 
+
+        const matchDate = randomDate(startDate, endDate);
+        const match = new Match({
+          tournamentId,
+          matchId,
+          team1: teams[i],
+          team2: teams[j],
+          matchDate,
+          overs,
+          winner: null,
+          loser: null,
+          runsTeam1: 0,
+          runsTeam2: 0,
+          pointsTeam1: 0,
+          pointsTeam2: 0,
+        });
+        await match.save();
+        matches.push(match);
+      }
+    }
+
+    tournament.matchesGenerated = true;
+    await tournament.save();
+
+    res
+      .status(200)
+      .json({ message: "Matches generated successfully", matches });
+  } catch (error) {
+    console.error("Error generating matches:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
   
+exports.updateMatchResult = async (req, res) => {
+  try {
+    const { matchId, winner, runsTeam1, runsTeam2 } = req.body;
+
+    const match = await Match.findOne({ matchId });
+    if (!match) {
+      return res.status(404).json({ message: "Match not found" });
+    }
+
+    match.winner = winner;
+    match.loser = winner === match.team1 ? match.team2 : match.team1;
+    match.runsTeam1 = runsTeam1;
+    match.runsTeam2 = runsTeam2;
+
+    if (winner === match.team1) {
+      match.pointsTeam1 += 2;
+      match.pointsTeam2 += 0; 
+    } else {
+      match.pointsTeam1 += 0; 
+      match.pointsTeam2 += 2;
+    }
+
+    await match.save();
+
+   
+    await updatePointsTable(match);
+
+    res
+      .status(200)
+      .json({ message: "Match result updated successfully", match });
+  } catch (error) {
+    console.error("Error updating match result:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+async function updatePointsTable(match) {
+  try {
+    const [team1Points, team2Points] = await Promise.all([
+      PointsTable.findOneAndUpdate(
+        { tournamentId: match.tournamentId, team: match.team1 },
+        {
+          $inc: {
+            matchesPlayed: 1,
+            points: match.winner === match.team1 ? 2 : 0,
+          },
+        },
+        { upsert: true, new: true }
+      ),
+      PointsTable.findOneAndUpdate(
+        { tournamentId: match.tournamentId, team: match.team2 },
+        {
+          $inc: {
+            matchesPlayed: 1,
+            points: match.winner === match.team2 ? 2 : 0,
+          },
+        },
+        { upsert: true, new: true }
+      ),
+    ]);
+
+    if (match.winner === match.team1) {
+      team1Points.matchesWon += 1;
+      team2Points.matchesLost += 1;
+    } else {
+      team1Points.matchesLost += 1;
+      team2Points.matchesWon += 1;
+    }
+
+    await Promise.all([team1Points.save(), team2Points.save()]);
+  } catch (error) {
+    console.error("Error updating points table:", error);
+    throw error;
+  }
+}
+
+function generateUniqueMatchId() {
+  const randomId = Math.floor(nextUniqueId + Math.random() * 90000); // Generate a random 5-digit number
+  nextUniqueId = (nextUniqueId + 1) % 100000; // Increment nextUniqueId and ensure it stays within 5 digits
+  return randomId;
+}
+
+function randomDate(start, end) {
+  return new Date(
+    start.getTime() + Math.random() * (end.getTime() - start.getTime())
+  );
+}
+
+exports.getTeamStatistics = async (req, res) => {
+  try {
+    const tournamentId = req.params.tournamentId;
+
+    const pointsTableEntries = await PointsTable.find({ tournamentId });
+
+    pointsTableEntries.sort((a, b) => b.points - a.points);
+
+    const formattedTeamStatistics = pointsTableEntries.map((entry, index) => {
+      return {
+        TEAMS: entry.team,
+        PLD: entry.matchesPlayed,
+        WON: entry.matchesWon,
+        LOST: entry.matchesLost,
+        PTS: entry.points,
+        Q: index < entry.length/2 ? "Q" : "E",
+      };
+    });
+
+    res.status(200).json({ teamStatistics: formattedTeamStatistics });
+  } catch (error) {
+    console.error("Error retrieving team statistics:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
