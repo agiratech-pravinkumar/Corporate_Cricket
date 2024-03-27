@@ -27,3 +27,24 @@
   font-size: 1.4rem;
   color: black;
 }
+
+.home {
+  padding: 20px;
+}
+
+.headerContainer {
+  margin-bottom: 20px;
+}
+
+.matchesContainer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+.matchCard {
+  width: 200px;
+  height: 100px;
+  margin: 10px;
+}
+

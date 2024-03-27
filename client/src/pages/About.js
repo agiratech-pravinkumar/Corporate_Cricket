@@ -1,49 +1,40 @@
 import React from "react";
 import Layout from "./../components/Layout/Layout";
 import { Box, Typography } from "@mui/material";
-import "../styles/AboutStyles.css"; // Import the CSS file
+import aboutImage from "../images/about1.jpg"; // Import your image here
 
 const About = () => {
   return (
     <Layout>
       <Box className="about-container">
-        <Typography variant="h4" className="about-title">
-          Welcome To Corporate Cricket
-        </Typography>
-        <Typography className="about-content">
-          Welcome to our corporate cricket portal! Our platform is designed to
-          bring together employees from various companies to participate in
-          exciting cricket tournaments. Here's what you can expect from our
-          platform:
-          <br />
-          <br />
-          <strong>Team Creation:</strong> Create your cricket team, recruit
-          players from within your organization, and showcase your cricketing
-          talent.
-          <br />
-          <strong>Tournament Posting:</strong> Organizers can post details
-          about upcoming cricket tournaments, including date, venue, format,
-          and entry fee.
-          <br />
-          <strong>Participation:</strong> Register your team to participate in
-          tournaments, subject to eligibility criteria and entry fees.
-          <br />
-          <strong>Match Planning:</strong> Tournament organizers can plan
-          matches, schedule fixtures, and communicate match schedules to
-          participating teams.
-          <br />
-          <strong>Results Announcement:</strong> Results of each match are
-          recorded and announced promptly, highlighting the winning team and
-          outstanding performances.
-          <br />
-          <strong>Fair Play:</strong> Our platform promotes fair play and
-          sportsmanship, ensuring that all participants adhere to the rules and
-          regulations of the tournament.
-          <br />
-          <br />
-          Join us today and experience the thrill of cricketing action at our
-          corporate cricket portal!
-        </Typography>
+        <Box className="container">
+          <Box className="row gy-5 align-items-center">
+            <Box className="col-12 col-lg-6">
+              <img className="img-fluid rounded" loading="lazy" src={aboutImage} alt="About 1" />
+            </Box>
+            <Box className="col-12 col-lg-6">
+              <Typography variant="h2" className="mb-4">Welcome to Corporate Cricket Portal</Typography>
+              <Typography className="lead fs-5 mb-4 text-muted">Empowering corporates to engage in the exciting world of cricket tournaments.</Typography>
+              
+              <Typography variant="h4" className="mb-3">Create Your Team</Typography>
+              <Typography className="mb-4">Form your own cricket team effortlessly. Recruit players from within your organization, showcase talent, and compete with other corporate teams.</Typography>
+
+              <Typography variant="h4" className="mb-3">Post Tournaments</Typography>
+              <Typography className="mb-4">Organize and announce upcoming cricket tournaments. Specify dates, venues, formats, and entry fees to attract participants.</Typography>
+
+              <Typography variant="h4" className="mb-3">Participate in Tournaments</Typography>
+              <Typography className="mb-4">Register your team to participate in tournaments. Enjoy seamless sign-ups and transparent eligibility criteria.</Typography>
+
+              <Typography variant="h4" className="mb-3">Plan Tournament Matches</Typography>
+              <Typography className="mb-4">Efficiently manage match schedules and fixtures. Coordinate with other teams and ensure smooth tournament operations.</Typography>
+
+              <Typography variant="h4" className="mb-3">Announce Results</Typography>
+              <Typography className="mb-4">Record and announce match results promptly. Celebrate the winning team and acknowledge outstanding performances.</Typography>
+
+              <Typography variant="h5" className="mb-3">Join us today and experience the thrill of corporate cricket tournaments!</Typography>
+            </Box>
+          </Box>
+        </Box>
       </Box>
     </Layout>
   );

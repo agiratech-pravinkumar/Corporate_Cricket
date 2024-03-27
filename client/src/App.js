@@ -9,9 +9,9 @@ import SignUpForm from "./pages/SignUpForm";
 import JoinTournamentForm from "./pages/JoinTournamentForm";
 import HomeWithOrgId from "./pages/HomeOrgId";
 import Test from "./pages/test/test"
-import CreateTournamentForm from "./pages/CreateTournamentForm.js"
+import CreateTournament from "./pages/CreateTournament"
 import MatchesPage from "./pages/MatchesPage"; 
-
+import UpdateTournament from "./pages/UpdateTournament";
 function App() {
   return (
     <div>
@@ -27,32 +27,15 @@ function App() {
           <Route path="/home/:organization_id" element={<HomeWithOrgId/>}/>
           <Route path="*" element={<Pagenotfound />} />
           <Route path="/test" element={<Test/>}/>
-          <Route path="tournaments/create_tournament" element={<CreateTournamentForm/>}/>
+          <Route path="tournaments/create_tournament" element={<CreateTournament/>}/>
           <Route path="tournaments/matches/:tournamentId" element={<MatchesPage />} />
+          <Route path="/tournaments/matches/update-result" element={<UpdateTournament />} />
         </Routes>
       </BrowserRouter>
     </div>
   );
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 export default App;
-
-
-
 
 

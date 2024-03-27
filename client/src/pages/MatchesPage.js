@@ -1,45 +1,51 @@
-import React, { useState, useEffect } from 'react';
-import Axios from 'axios';
-import Navbar from './NavBar';
+import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import axios from 'axios';
+import Layout from '../components/Layout/Layout';
+import MatchCard from '../components/Layout/MatchCard'; // Import the MatchCard component
+import "../styles/testing.css";
+import PoinsTable from '../components/Layout/PoinsTable';
 
-function MatchesPage({ tournamentId }) {
+function MatchesPage() {
+  const { tournamentId } = useParams();
   const [matches, setMatches] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [completedMatches, setCompletedMatches] = useState([]);
+  const [upcomingMatches, setUpcomingMatches] = useState([]);
 
   useEffect(() => {
-    const fetchMatches = async () => {
-      try {
-        const response = await Axios.get(`http://localhost:3700/tournaments/matches/${tournamentId}`);
+    axios.get(`http://localhost:3700/tournaments/matches/${tournamentId}`)
+      .then(response => {
         setMatches(response.data);
-      } catch (error) {
+      })
+      .catch(error => {
         console.error('Error fetching matches:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchMatches();
+      });
   }, [tournamentId]);
 
+  useEffect(() => {
+    // Filter matches into completed and upcoming categories
+    const completed = matches.filter(match => match.winner);
+    const upcoming = matches.filter(match => !match.winner);
+    setCompletedMatches(completed);
+    setUpcomingMatches(upcoming);
+  }, [matches]);
+
   return (
-    <div>
-      <h1 style={{ textAlign: 'center', marginBottom: '20px' }}>Matches for Tournament ID: {tournamentId}</h1>
-      {loading ? (
-        <p>Loading matches...</p>
-      ) : (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', justifyContent: 'center' }}>
-          {matches.map((match, index) => (
-            <div key={index} style={{ border: '1px solid #ccc', borderRadius: '5px', padding: '15px', width: '300px', boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)' }}>
-              <h2 style={{ textAlign: 'center' }}>Match {index + 1}</h2>
-              <p><strong>Tournament ID:</strong> {match.tournamentId}</p>
-              <p><strong>Match ID:</strong> {match.matchId}</p>
-              <p><strong>Team 1:</strong> {match.team1}</p>
-              <p><strong>Team 2:</strong> {match.team2}</p>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+    <Layout>
+      <h1>ALL MATCHES FOR :{tournamentId}</h1>
+      <div className="content-wrapper">
+        {/* Map through completed matches and render MatchCard for each */}
+        {completedMatches.map((match, index) => (
+          <MatchCard key={index} match={match} />
+        ))}
+        {/* Map through upcoming matches and render MatchCard for each */}
+        {upcomingMatches.map((match, index) => (
+          <MatchCard key={index} match={match} />
+        ))}
+        
+      </div>
+      <PoinsTable tournamentId={tournamentId} />
+    </Layout>
   );
 }
 

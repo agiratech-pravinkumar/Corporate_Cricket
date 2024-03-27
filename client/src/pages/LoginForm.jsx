@@ -1,66 +1,81 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import "../styles/Login.css"
+import { Link } from 'react-router-dom';
 import Axios from 'axios';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import Layout from "../components/Layout/Layout";
+import loginImage from "../images/about4.jpg";
+import {
+  MDBBtn,
+  MDBContainer,
+  MDBCard,
+  MDBCardBody,
+  MDBCardImage,
+  MDBRow,
+  MDBCol,
+  MDBIcon,
+  MDBInput
+} from 'mdb-react-ui-kit';
 
 function LoginForm() {
-  const navigate = useNavigate();
   const [organization_id, setOrganizationId] = useState('');
   const [password, setPassword] = useState('');
-  
-  const handleSubmit = (e) => {
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    Axios.post("http://localhost:3700/login", { organization_id, password })
-      .then((res) => {
-        alert("Login Successful"); 
-        console.log(`Data Saved ${res.data}`);
-        // Redirect to the dynamic organization ID route
-        navigate(`/home/${organization_id}`); // Redirect after successful login
-      })
-      .catch((err) => {
-        console.log(`Error occurred during login: ${err}`);
-        alert("Login failed. Please try again."); 
-      });
+    try {
+      const response = await Axios.post("http://localhost:3700/login", { organization_id, password });
+      console.log("Login response:", response);
+      if (response.status === 200) {
+        toast.success("Login Successful", { autoClose: 5000 });
+        window.location.replace(`/home/${organization_id}`);
+      } else {
+        toast.error("Login failed. Please try again.", { autoClose: 5000 });
+      }
+    } catch (error) {
+      console.error("Error occurred during login:", error);
+      toast.error("An error occurred during login. Please try again.", { autoClose: 5000 });
+    }
   };
 
   return (
     <Layout>
-      <div className="wrapper">
-        <form onSubmit={handleSubmit}> 
-          <h1>Login</h1>
-          <div className="input-box">
-            <input
-              type="text"
-              placeholder="Organization Id"
-              value={organization_id} 
-              onChange={(e) => setOrganizationId(e.target.value)} 
-              required
-            />
-            <i className='bx bxs-user'></i>
-          </div>
-          <div className="input-box">
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)} 
-              required
-            />
-            <i className='bx bxs-lock-alt' ></i>
-          </div>
-          <div className="remember-forgot">
-            <a href="https://example.com">Forgot Password</a>
-          </div>
-          <button type="submit" className="btn">Login</button>
-          <div className="register-link">
-            <p>
-              Don't have an account? 
-              <Link to="/register">Register</Link>
-            </p>
-          </div>
-        </form>
-      </div>
+      <MDBContainer className="my-5">
+        <MDBCard>
+          <MDBRow className='g-0'>
+            <MDBCol md='6'>
+              <MDBCardImage src={loginImage} alt="login form" className='rounded-start w-100'/>
+            </MDBCol>
+            <MDBCol md='6'>
+              <MDBCardBody className='d-flex flex-column'>
+                <div className='d-flex flex-row mt-2'>
+                  <MDBIcon fas icon="cubes fa-3x me-3" style={{ color: '#ff6219' }}/>
+                  <span className="h1 fw-bold mb-0">CORPORATE LOGIN</span>
+                </div>
+                <h5 className="fw-normal my-4 pb-3" style={{letterSpacing: '1px'}}>Sign into your account</h5>
+                <form onSubmit={handleSubmit}>
+                  <div className="mb-4">
+                    <label htmlFor="organizationId" className="form-label fw-bold">Organization Id</label>
+                    <MDBInput id='organizationId' type='text' size="lg" value={organization_id} onChange={(e) => setOrganizationId(e.target.value)} required/>
+                  </div>
+                  <div className="mb-4">
+                    <label htmlFor="password" className="form-label fw-bold">Password</label>
+                    <MDBInput id='password' type='password' size="lg" value={password} onChange={(e) => setPassword(e.target.value)} required/>
+                  </div>
+                  <MDBBtn className="mb-4 px-5" color='dark' size='lg' type="submit">Login</MDBBtn>
+                </form>
+                <a className="small text-muted" href="#!">Forgot password?</a>
+                <p className="mb-5 pb-lg-2" style={{color: '#393f81'}}>Don't have an account? <Link to="/register" style={{color: '#393f81'}}>Register here</Link></p>
+                <div className='d-flex flex-row justify-content-start'>
+                  <a href="#!" className="small text-muted me-1">Terms of use.</a>
+                  <a href="#!" className="small text-muted">Privacy policy</a>
+                </div>
+              </MDBCardBody>
+            </MDBCol>
+          </MDBRow>
+        </MDBCard>
+      </MDBContainer>
+      <ToastContainer />
     </Layout>
   );
 }

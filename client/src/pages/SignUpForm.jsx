@@ -1,9 +1,21 @@
 import React, { useState } from 'react';
 import Axios from 'axios';
-import '../styles/Login.css';
-import { Link } from 'react-router-dom'; 
+import { Link } from 'react-router-dom';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import {
+  MDBBtn,
+  MDBContainer,
+  MDBRow,
+  MDBCol,
+  MDBCard,
+  MDBCardBody,
+  MDBInput,
+  MDBIcon,
+  MDBCardImage // Add this import
+} from 'mdb-react-ui-kit';
 import Layout from "../components/Layout/Layout";
-
+import sigupImage from "../images/1.jpg";
 
 const SignUpForm = () => {
   const [organization_name, setOrganization_name] = useState('');
@@ -15,83 +27,64 @@ const SignUpForm = () => {
     e.preventDefault();
     Axios.post("http://localhost:3700/register", { organization_name, email, password, confirm_password })
       .then((res) => {
-        alert("Data saved Successfully");
+        toast.success("Registration Successful", { autoClose: 5000 });
         console.log(`Data Saved ${res.data}`);
       })
-      .catch((err) => console.log(`Error is going on : ${err}`));
-      alert(" failed. Please try again."); 
-
+      .catch((err) => {
+        console.log(`Error is going on : ${err}`);
+        toast.error("Registration failed. Please try again.", { autoClose: 5000 });
+      });
   };
 
   return (
     <Layout>
-    <div className="container">
-      <div className="row justify-content-center">
-        <div className="col-md-6">
-          <div className="wrapper">
-            <form onSubmit={handleSubmit}>
-              <h1 className="text-center mb-4">Sign Up</h1>
-              <div className="form-group">
-                <label htmlFor="organization_name">Organization Name:</label>
-                <input
-                  type="text"
-                  id="organization_name"
-                  name="organization_name"
-                  className="form-control"
-                  placeholder="Enter your organization name"
-                  value={organization_name}
-                  onChange={(e) => setOrganization_name(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="email">Email:</label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  className="form-control"
-                  placeholder="Enter your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="password">Password:</label>
-                <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  className="form-control"
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="confirm_password">Confirm Password:</label>
-                <input
-                  type="password"
-                  id="confirm_password"
-                  name="confirm_password"
-                  className="form-control"
-                  placeholder="Confirm your password"
-                  value={confirm_password}
-                  onChange={(e) => setConfirm_password(e.target.value)}
-                  required
-                />
-              </div>
-              <button type="submit" className="btn btn-primary btn-block">Sign Up</button>
-              <div className="register-link mt-3">
-                <p className="text-center">Already have an account? <Link to="/login">Login</Link></p>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
+      {/* Apply the custom CSS class for background color */}
+      <MDBContainer fluid className="my-5">
+        <MDBCard className='text-black'>
+          <MDBCardBody>
+            <MDBRow>
+              <MDBCol md='10' lg='6' className='order-2 order-lg-1 d-flex flex-column align-items-center'>
+                <h1 className="text-center fw-bold mb-5 mt-4">Sign up</h1>
+                <form onSubmit={handleSubmit}>
+                  <div className="mb-4">
+                    <label htmlFor="organizationName" className="fw-bold mb-2">Organization Name:</label>
+                    <MDBIcon fas icon="building" size='lg' className="me-3"/>
+                    <MDBInput id='organizationName' type='text' className='w-100' value={organization_name} onChange={(e) => setOrganization_name(e.target.value)} required/>
+                  </div>
+
+                  <div className="mb-4">
+                    <label htmlFor="email" className="fw-bold mb-2">Your Email:</label>
+                    <MDBIcon fas icon="envelope" size='lg' className="me-3"/>
+                    <MDBInput id='email' type='email' value={email} onChange={(e) => setEmail(e.target.value)} required/>
+                  </div>
+
+                  <div className="mb-4">
+                    <label htmlFor="password" className="fw-bold mb-2">Password:</label>
+                    <MDBIcon fas icon="lock" size='lg' className="me-3"/>
+                    <MDBInput id='password' type='password' value={password} onChange={(e) => setPassword(e.target.value)} required/>
+                  </div>
+
+                  <div className="mb-4">
+                    <label htmlFor="confirmPassword" className="fw-bold mb-2">Confirm Password:</label>
+                    <MDBIcon fas icon="key" size='lg' className="me-3"/>
+                    <MDBInput id='confirmPassword' type='password' value={confirm_password} onChange={(e) => setConfirm_password(e.target.value)} required/>
+                  </div>
+
+                  <MDBBtn className='mb-4' size='lg' type='submit'>Register</MDBBtn>
+                </form>
+                <div className="register-link">
+                  <p className="text-center mb-0">Already have an account? <Link to="/login">Login</Link></p>
+                </div>
+              </MDBCol>
+
+              <MDBCol md='10' lg='6' className='order-1 order-lg-2 d-flex align-items-center'>
+                <MDBCardImage src={sigupImage} alt='registration' fluid/>
+              </MDBCol>
+            </MDBRow>
+          </MDBCardBody>
+        </MDBCard>
+      </MDBContainer>
+      <ToastContainer />
     </Layout>
   );
 };

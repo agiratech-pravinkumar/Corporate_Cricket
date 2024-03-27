@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from "react";
 import Layout from "./../components/Layout/Layout";
+import { IconButton } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
 import {
   Box,
-  Card,
-  CardActionArea,
-  CardContent,
-  CardMedia,
   Typography,
   Button,
   Table,
@@ -15,22 +13,20 @@ import {
   TableHead,
   TableRow,
   Paper,
-} from "@mui/material";
+  Modal,
+} from "@mui/material"; 
 import Axios from "axios";
-import T20 from "../images/t120.png";
-import Agira from "../images/Agira.jpg";
-import Cognizant from "../images/t20.png";
-import MasalaDosa from "../images/cricket-championship-tournament-background-with-vector-illustration_30996-7204.png";
-import Paneer from "../images/cricket-match-concept-with-stadium-background_30996-1593.avif";
-import Gujrati from "../images/t120.png";
+
+
 import JoinTournamentForm from "./JoinTournamentForm";
 
 const Menu = () => {
   const [tournament, setTournament] = useState([]);
   const [selectedTournament, setSelectedTournament] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
-  const [showJoinForm, setShowJoinForm] = useState(false); 
-
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showJoinModal, setShowJoinModal] = useState(false);
+  const [showJoinForm, setShowJoinForm] = useState(false);
   useEffect(() => {
     Axios.get("http://localhost:3700/tournaments/tournaments/")
       .then((res) => setTournament(res.data))
@@ -39,11 +35,8 @@ const Menu = () => {
       });
   }, []);
 
-  const images = [T20, Agira, Cognizant, MasalaDosa, Paneer, Gujrati];
-
   const handleJoinTournament = (tournamentId, teamLimit) => {
-  
-    setShowJoinForm(true);
+    setShowJoinModal(true);
   };
 
   const handleDetails = async (tournamentId) => {
@@ -52,13 +45,9 @@ const Menu = () => {
         `http://localhost:3700/tournaments/tournaments/${tournamentId}`
       );
       setSelectedTournament(response.data);
-      const index =
-        tournament.findIndex((item) => item.tournamentId === tournamentId) %
-        images.length;
-      setSelectedImage(images[index]);
+      setShowDetailsModal(true);
     } catch (error) {
       console.error("Error fetching tournament details:", error);
-      // Handle error display or other actions upon failed fetch
     }
   };
 
@@ -82,11 +71,15 @@ const Menu = () => {
                   <TableCell sx={{ color: "white", fontWeight: "bold" }}>
                     Ball Type
                   </TableCell>{" "}
-                  {/* Added Ball Type header */}
                   <TableCell sx={{ color: "white", fontWeight: "bold" }}>
                     Overs
                   </TableCell>{" "}
-                  {/* Added Overs header */}
+                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                    Start Date
+                  </TableCell>
+                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                    Last Date
+                  </TableCell>
                   <TableCell sx={{ color: "white", fontWeight: "bold" }}>
                     Action
                   </TableCell>
@@ -104,8 +97,13 @@ const Menu = () => {
                     <TableCell>{item.tournamentName}</TableCell>
                     <TableCell>{item.teams.join(", ")}</TableCell>
                     <TableCell>{item.ballType}</TableCell>{" "}
-                    {/* Display Ball Type */}
-                    <TableCell>{item.overs}</TableCell> {/* Display Overs */}
+                    <TableCell>{item.overs}</TableCell>
+                    <TableCell>
+                      {new Date(item.startDate).toLocaleDateString("en-GB")}
+                    </TableCell>
+                    <TableCell>
+                      {new Date(item.endDate).toLocaleDateString("en-GB")}
+                    </TableCell>
                     <TableCell>
                       <Button
                         variant="contained"
@@ -133,65 +131,117 @@ const Menu = () => {
             </Table>
           </TableContainer>
         </Box>
+
         {selectedTournament && (
-          <Card sx={{ maxWidth: "90%", m: 2 }}>
-            <CardActionArea>
-              <CardMedia
-                sx={{ minHeight: "400px" }}
-                component="img"
-                src={selectedImage}
-                alt={selectedTournament.tournamentName}
-              />
-              <CardContent>
-                <Typography variant="h5" gutterBottom component="div">
-                  {Object.entries(selectedTournament)
-                    .filter(
-                      ([key]) =>
-                        ![
-                          "_id",
-                          "__v",
-                          "refereeId",
-                          "OrganizationEmail",
-                        ].includes(key)
-                    )
-                    .map(([key, value]) => (
-                      <p key={key}>
-                        <strong>
-                          {key === "ballType"
-                            ? "Ball Type"
-                            : key === "overs"
-                            ? "Overs"
-                            : key}
-                          :{" "}
-                        </strong>{" "}
-                        
-                        {key === "teams" ? (
-                          <span
-                            style={{
-                              color:
-                                value.length === selectedTournament.teamLimit
-                                  ? "red"
-                                  : "green",
-                            }}
-                          >
-                            {value.length === selectedTournament.teamLimit
-                              ? "Team is full"
-                              : `${
-                                  selectedTournament.teamLimit - value.length
-                                } teams left`}
-                          </span>
-                        ) : (
-                          value
-                        )}
-                      </p>
-                    ))}
-                </Typography>
-              </CardContent>
-            </CardActionArea>
-          </Card>
+          <Modal
+            open={showDetailsModal}
+            onClose={() => setShowDetailsModal(false)}
+            aria-labelledby="tournament-details-modal"
+            aria-describedby="tournament-details"
+          >
+            <Box
+              sx={{
+                position: "absolute",
+                width: 400,
+                bgcolor: "background.paper",
+                border: "2px solid #000",
+                boxShadow: 24,
+                p: 4,
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+              }}
+            >
+              <Typography variant="h5" gutterBottom component="div">
+                {Object.entries(selectedTournament)
+                  .filter(
+                    ([key]) =>
+                      ![
+                        "_id",
+                        "__v",
+                        "refereeId",
+                        "Organization",
+                        "organizationEmail",
+                        "matchesGenerated",
+                      ].includes(key)
+                  )
+                  .map(([key, value]) => (
+                    <p key={key}>
+                      <strong>
+                        {key === "ballType"
+                          ? "Ball Type"
+                          : key === "overs"
+                          ? "Overs"
+                          : key}
+                        :{" "}
+                      </strong>{" "}
+                      {key === "teams" ? (
+                        <span
+                          style={{
+                            color:
+                              value.length === selectedTournament.teamLimit
+                                ? "red"
+                                : "green",
+                          }}
+                        >
+                          {value.length === selectedTournament.teamLimit
+                            ? "Team is full"
+                            : `${
+                                selectedTournament.teamLimit - value.length
+                              } teams left`}
+                        </span>
+                      ) : (
+                        value
+                      )}
+                    </p>
+                  ))}
+              </Typography>
+
+              <Button
+                variant="contained"
+                onClick={() => setShowDetailsModal(false)}
+                style={{ marginLeft: 10 }}
+              >
+                Close
+              </Button>
+            </Box>
+          </Modal>
         )}
-       
+
         {showJoinForm && <JoinTournamentForm />}
+
+        <Modal
+          open={showJoinModal}
+          onClose={() => setShowJoinModal(false)}
+          aria-labelledby="join-tournament-modal"
+        >
+          <Box
+            sx={{
+              position: "relative",
+              width: 400,
+              bgcolor: "background.paper",
+              border: "2px solid #000",
+              boxShadow: 24,
+              p: 4,
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+            }}
+          >
+            <IconButton
+              sx={{
+                position: "absolute",
+                top: 0,
+                right: 0,
+                color: "rgba(0, 0, 0, 0.54)",
+              }}
+              onClick={() => setShowJoinModal(false)}
+            >
+              <CloseIcon />
+            </IconButton>
+            <JoinTournamentForm />
+          </Box>
+        </Modal>
       </Box>
     </Layout>
   );
