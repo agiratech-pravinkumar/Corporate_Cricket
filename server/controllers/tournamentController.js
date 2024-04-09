@@ -3,7 +3,6 @@ const Tournament = require("../models/tournamentModel");
 const Match = require("../models/matchModel");
 const PointsTable = require('../models/pointsTableModel');
 const nodemailer = require("nodemailer");
-const moment = require("moment");
 
 exports.createTournament = async (req, res) => {
   try {
@@ -78,7 +77,7 @@ exports.createTournament = async (req, res) => {
   }
 };
 
-exports.getAllTournaments = async (req, res) => {
+exports.getAllTournaments = async (req, res) => { 
   try {
     const tournaments = await Tournament.find();
     res.status(200).json(tournaments);
@@ -172,16 +171,41 @@ exports.sendMatches = async (req, res) => {
     if (!tournament) {
       return res.status(404).json({ message: "Tournament not found" });
     }
-    const matches = await Match.find({ tournamentId });
+    
+    
+    const matches = await Match.find({ tournamentId }).sort({ matchDate: 1 });
 
     const emailContent = `
-        <h2>Matches for Tournament ${tournament.tournamentName}</h2>
-        <ul>
-          ${matches
-            .map((match) => `<li>${match.team1} vs ${match.team2}</li>`)
-            .join("")}
-        </ul>
-      `;
+    <h1>We are excited to announce the fixtures for the upcoming ${tournament.tournamentName}!</h1>
+    <p>Here are the details:</p>
+    <h2>Matches for Tournament ${tournament.tournamentName}</h2>
+    <table border="1">
+      <thead>
+        <tr>
+          <th>Match No</th>
+          <th>Match Date</th>
+          <th>Teams</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${matches.map((match, index) => `
+          <tr>
+            <td>${index + 1}</td>
+            <td>${match.matchDate}</td>
+            <td>${match.team1} vs ${match.team2}</td>
+          </tr>`
+        ).join("")}
+      </tbody>
+    </table>
+    <p>Please make sure to review the fixtures carefully and mark your calendars accordingly. If you have any questions or concerns regarding the fixtures, feel free to reach out to us:</p>
+    <p>Contact Information:</p>
+    <ul>
+      <li>Email: corporatecricket25@gmail.com</li>
+      <li>Phone: 9360441754</li>
+      <li>Website: </li>
+    </ul>
+  `;
+  
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -194,7 +218,7 @@ exports.sendMatches = async (req, res) => {
       const mailOptions = {
         from: "logachan08@gmail.com",
         to: orgEmail,
-        subject: `Matches for Tournament ${tournament.tournamentName}`,
+        subject: `${tournament.tournamentName} - Tournament Fixtures and Important Information`,
         html: emailContent,
       };
       await transporter.sendMail(mailOptions, (error, info) => {
@@ -214,22 +238,23 @@ exports.sendMatches = async (req, res) => {
   }
 };
 
-exports.getAllMatches = async (req, res) => {
-  try {
-  
-    const matches = await Match.find();
 
- 
-    res.json(matches);
-  } catch (error) {
-   
-    console.error("Error fetching matches:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
+
 
 let nextUniqueId = 10000; 
 let usedMatchIds = new Set(); 
+
+function generateUniqueMatchId() {
+  const randomId = Math.floor(nextUniqueId + Math.random() * 90000); 
+  nextUniqueId = (nextUniqueId + 1) % 100000;
+  return randomId.toString(); // Convert the generated id to a string
+}
+
+function randomDate(start, end) {
+  return new Date(
+    start.getTime() + Math.random() * (end.getTime() - start.getTime())
+  );
+}
 
 exports.generateMatches = async (req, res) => {
   try {
@@ -241,17 +266,13 @@ exports.generateMatches = async (req, res) => {
     }
 
     if (tournament.matchesGenerated) {
-      return res
-        .status(400)
-        .json({ message: "Matches already generated for this tournament" });
+      return res.status(400).json({ message: "Matches already generated for this tournament" });
     }
 
     const teams = tournament.teams;
 
     if (teams.length < tournament.teamLimit) {
-      return res
-        .status(400)
-        .json({ message: "Team limit not reached for this tournament" });
+      return res.status(400).json({ message: "Team limit not reached for this tournament" });
     }
 
     const startDate = new Date(tournament.startDate);
@@ -267,7 +288,6 @@ exports.generateMatches = async (req, res) => {
       points: 0,
     }));
 
-    
     await PointsTable.insertMany(pointsTableEntries);
 
     const matches = [];
@@ -290,10 +310,12 @@ exports.generateMatches = async (req, res) => {
           overs,
           winner: null,
           loser: null,
-          runsTeam1: 0,
-          runsTeam2: 0,
+          runsWicketsTeam1: 0-0,
+          runsWicketsTeam2:0-0,
           pointsTeam1: 0,
           pointsTeam2: 0,
+          tossWinner: null,
+          choice: null,
         });
         await match.save();
         matches.push(match);
@@ -303,50 +325,103 @@ exports.generateMatches = async (req, res) => {
     tournament.matchesGenerated = true;
     await tournament.save();
 
-    res
-      .status(200)
-      .json({ message: "Matches generated successfully", matches });
+    res.status(200).json({ message: "Matches generated successfully", matches });
   } catch (error) {
     console.error("Error generating matches:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
-  
-exports.updateMatchResult = async (req, res) => {
+
+
+
+exports.getMatchById = async (req, res) => {
   try {
-    const { matchId, winner, runsTeam1, runsTeam2 } = req.body;
+   
+    const matchId = req.params.matchId;
+
+
+    const match = await Match.findOne({ matchId });
+
+    if (!match) {
+      return res.status(404).json({ error: 'Match not found' });
+    }
+
+    return res.status(200).json({ match });
+  } catch (error) {
+    console.error('Error fetching match by ID:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+
+
+
+exports.updateMatchResult = async (req, res) => {
+ 
+  
+  try {
+    const matchId = req.params.matchId;
+    const { winner, runsWicketsTeam1, runsWicketsTeam2, tossWinner, choice } = req.body;
 
     const match = await Match.findOne({ matchId });
     if (!match) {
       return res.status(404).json({ message: "Match not found" });
+    } 
+   
+
+    // Check if the toss winner is valid (either team1 or team2)
+    if (tossWinner !== match.team1 && tossWinner !== match.team2) {
+      return res.status(400).json({ message: "Invalid toss winner" });
     }
 
+    // Determine batting and bowling teams based on toss winner and choice
+    let battingTeam, bowlingTeam;
+    if (tossWinner === match.team1) {
+      if (choice === "Batting") {
+        battingTeam = match.team1;
+        bowlingTeam = match.team2;
+      } else {
+        battingTeam = match.team2;
+        bowlingTeam = match.team1;
+      }
+    } else {
+      if (choice === "Batting") {
+        battingTeam = match.team2;
+        bowlingTeam = match.team1;
+      } else {
+        battingTeam = match.team1;
+        bowlingTeam = match.team2;
+      }
+    }
+
+    // Update match details
     match.winner = winner;
     match.loser = winner === match.team1 ? match.team2 : match.team1;
-    match.runsTeam1 = runsTeam1;
-    match.runsTeam2 = runsTeam2;
+    match.runsWicketsTeam1 = runsWicketsTeam1;
+    match.runsWicketsTeam2 = runsWicketsTeam2;
+    match.tossWinner = tossWinner;
+    match.choice = choice;
 
-    if (winner === match.team1) {
+    // Update points based on winner
+    if (winner === battingTeam) {
       match.pointsTeam1 += 2;
-      match.pointsTeam2 += 0; 
+      match.pointsTeam2 += 0;
     } else {
-      match.pointsTeam1 += 0; 
+      match.pointsTeam1 += 0;
       match.pointsTeam2 += 2;
     }
 
     await match.save();
 
-   
     await updatePointsTable(match);
 
-    res
-      .status(200)
-      .json({ message: "Match result updated successfully", match });
+    res.status(200).json({ message: "Match result updated successfully", match });
   } catch (error) {
     console.error("Error updating match result:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 
 async function updatePointsTable(match) {
   try {
@@ -373,12 +448,13 @@ async function updatePointsTable(match) {
       ),
     ]);
 
+   
     if (match.winner === match.team1) {
       team1Points.matchesWon += 1;
       team2Points.matchesLost += 1;
     } else {
-      team1Points.matchesLost += 1;
       team2Points.matchesWon += 1;
+      team1Points.matchesLost += 1; 
     }
 
     await Promise.all([team1Points.save(), team2Points.save()]);
@@ -388,17 +464,6 @@ async function updatePointsTable(match) {
   }
 }
 
-function generateUniqueMatchId() {
-  const randomId = Math.floor(nextUniqueId + Math.random() * 90000); // Generate a random 5-digit number
-  nextUniqueId = (nextUniqueId + 1) % 100000; // Increment nextUniqueId and ensure it stays within 5 digits
-  return randomId;
-}
-
-function randomDate(start, end) {
-  return new Date(
-    start.getTime() + Math.random() * (end.getTime() - start.getTime())
-  );
-}
 
 exports.getTeamStatistics = async (req, res) => {
   try {
@@ -408,14 +473,18 @@ exports.getTeamStatistics = async (req, res) => {
 
     pointsTableEntries.sort((a, b) => b.points - a.points);
 
+    const numberOfTeams = pointsTableEntries.length;
+    const numberOfTeamsForQ = Math.ceil(numberOfTeams / 2); 
+
     const formattedTeamStatistics = pointsTableEntries.map((entry, index) => {
+      const Q = index < numberOfTeamsForQ ? "Q" : "E";
       return {
         TEAMS: entry.team,
         PLD: entry.matchesPlayed,
         WON: entry.matchesWon,
         LOST: entry.matchesLost,
         PTS: entry.points,
-        Q: index < entry.length/2 ? "Q" : "E",
+        Q: Q,
       };
     });
 
@@ -425,4 +494,31 @@ exports.getTeamStatistics = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+exports.allMatches = async (req, res) => {
+  try {
+    const matches = await Match.find();
+    res.json(matches);
+  } catch (err) {
+    console.error("Error fetching matches:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+
+}
+exports.search = async (req, res) => {
+  const { name } = req.params;
+  try {
+    const tournaments = await Tournament.find({ tournamentName: { $regex: new RegExp(name, "i") } });
+    if (tournaments.length === 0) {
+      return res.status(404).json({ message: "No tournaments found" });
+    }
+    res.json(tournaments);
+  } catch (error) {
+    console.error("Error fetching tournament details:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+
+
+  
 

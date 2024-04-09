@@ -39,7 +39,7 @@ exports.registerForm = async (req, res) => {
 
     const savedOrganization = await newOrganization.save();
 
-    await sendOrganizationIdEmail(email, organization_id);
+    await sendOrganizationIdEmail(email, organization_id,organization_name);
 
     res.status(201).json({
       message: "Organization registered successfully",
@@ -55,7 +55,7 @@ function generateOrganizationId() {
   return Math.floor(10000 + Math.random() * 90000);
 }
 
-async function sendOrganizationIdEmail(email, organizationId) {
+async function sendOrganizationIdEmail(email, organization_id,organization_name) {
   let transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -68,11 +68,19 @@ async function sendOrganizationIdEmail(email, organizationId) {
     from: "logachan08@gmail.com",
     to: email,
     subject: "Your Organization ID",
-    text: `Hello you have suceesfully registered.please keep your org id.you can login now.Your organization ID is: ${organizationId}.`,
+    html: `
+      <h1>Registration Successful</h1>
+      <p>Hello,${organization_name}</p>
+      <p>Congratulations! You have successfully registered. Please keep your organization ID safe. You can use this ID to log in to your account.</p>
+      <p>Your organization ID is: <strong>${organization_id}</strong>.</p>
+      <p>Thank you for registering with us!</p>
+      <p>Best regards,<br>corporate cricket</p>
+    `,
   };
 
   await transporter.sendMail(mailOptions);
 }
+
 exports.loginCheck = async (req, res) => {
   try {
     const { organization_id, password } = req.body;
@@ -90,8 +98,7 @@ exports.loginCheck = async (req, res) => {
     // Generate JWT token
     const token = jwt.sign(
       { organization_id: corporate.organization_id },
-      process.env.JWT_SECRET
-    );
+      process.env.JWT_SECRET,{expiresIn:"1d"});
     res
       .status(200)
       .json({ message: "Corporate logged in successfully", token });

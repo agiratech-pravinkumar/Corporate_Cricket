@@ -1,5 +1,7 @@
 const express = require("express");
 
+const middleware=require('../middleware/auth');
+
 const tournamentController = require("../controllers/tournamentController");
 
 const router = express.Router();
@@ -22,13 +24,17 @@ router.get(
 
 //router.get('/match/:tournamentId',tournamentController.match);
 
-router.post("/matches/:tournamentId", tournamentController.generateMatches);
+router.post("/matches/:tournamentId",tournamentController.generateMatches);
 
 router.post("/announce/:tournamentId", tournamentController.sendMatches);
 
-router.put('/matches/update-result', tournamentController.updateMatchResult);
+router.put('/matches/update-result/:matchId', tournamentController.updateMatchResult);
 
-router.get('/getallmatches',tournamentController.getAllMatches);
+router.get('/:matchId',tournamentController.getMatchById)
+
+router.get('/match/allmatches',tournamentController.allMatches);
+
+router.get('/search/:tournamentId',tournamentController.search)
 
 router.get('/getPointsTable/:tournamentId',tournamentController.getTeamStatistics);
 

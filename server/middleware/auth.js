@@ -11,7 +11,7 @@ function verifyToken(req, res, next) {
         if (err) {
             return res.status(401).json({ message: 'Unauthorized: Invalid token' });
         }
-        req.organization = decoded;
+        req.organization_id = decoded;
         next();
     });
 }

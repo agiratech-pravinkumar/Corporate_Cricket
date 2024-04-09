@@ -23,7 +23,6 @@ const matchSchema = new mongoose.Schema({
   },
   overs: {
     type: Number,
-    
   },
   winner: {
     type: String,
@@ -33,13 +32,13 @@ const matchSchema = new mongoose.Schema({
     type: String,
     default: null
   },
-  runsTeam1: {
-    type: Number,
-    default: 0
+  runsWicketsTeam1: {
+    type: String,
+    default: "0-0" // Default format for runs-wickets
   },
-  runsTeam2: {
-    type: Number,
-    default: 0
+  runsWicketsTeam2: {
+    type: String,
+    default: "0-0" // Default format for runs-wickets
   },
   pointsTeam1: {
     type: Number,
@@ -55,7 +54,7 @@ const matchSchema = new mongoose.Schema({
   },
   choice: {
     type: String,
-    enum: ['batting', 'bowling', null],
+    enum: ['Batting', 'Bowling', null],
     default: null
   }
 });
